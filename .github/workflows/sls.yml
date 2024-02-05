@@ -1,0 +1,44 @@
+# Name of this GitHub Actions workflow.
+name: StartLeft
+
+on:
+  # Scan changed files in PRs (diff-aware scanning):
+  #pull_request: {}
+  # Scan on-demand through GitHub Actions interface:
+  workflow_dispatch: {}
+  # Scan mainline branches and report all findings:
+  push:
+    branches: ["master", "main"]
+  # Schedule the CI job (this method uses cron syntax):
+  #schedule:
+    #- cron: '20 23 * * *' # Sets schedule to scan every day at 23:20 UTC.
+    # It is recommended to change the schedule to a random time.
+
+jobs:
+  sls:
+    # User definable name of this GitHub Actions job.
+    name: sls/scan
+    # If you are self-hosting, change the following `runs-on` value: 
+    runs-on: ubuntu-latest
+
+    container:
+      # SLS container image. Do not change this.
+      image: tauruseer.azurecr.io/tsscanner:latest
+      credentials:
+        username: ${{ secrets.SLS_CLIENT_ID }}
+        password: ${{ secrets.SLS_CLIENT_SECRET }}
+      volumes:
+        - ${GITHUB_WORKSPACE}:/repo
+
+    # Skip any PR created by dependabot to avoid permission issues:
+    if: (github.actor != 'dependabot[bot]')
+
+    steps:
+      # Fetch project source with GitHub Actions Checkout.
+      - uses: actions/checkout@v4
+      # Run the "sls scan" command on the command line of the docker image.
+      - run: tauruseer.azurecr.io/tsscanner:latest -p /repo --component-path /repo --build-path /repo --account-key ${SLS_ACCOUNT_KEY} --scan-key ${SLS_SCAN_KEY} --package-name \"WebGoat\" --package-version \"1.0\""
+        env:
+          # and add it to your GitHub secrets.
+          SLS_ACCOUNT_KEY: ${{ secrets.SLS_ACCOUNT_KEY }}
+          SLS_SCAN_KEY: ${{ secrets.SLS_SCAN_KEY }}
