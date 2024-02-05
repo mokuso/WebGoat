@@ -37,19 +37,21 @@ jobs:
       # Fetch project source with GitHub Actions Checkout.
       - uses: actions/checkout@v4
 
-      - name: Login to ACR
-        uses: docker/login-action@v3
-        with:
-          registry: tauruseer.azurecr.io
-          username: ${{ secrets.SLS_CLIENT_ID }}
-          password: ${{ secrets.SLS_CLIENT_SECRET }}
+      #- name: Login to ACR
+        #uses: docker/login-action@v3
+        #with:
+          #registry: tauruseer.azurecr.io
+          #username: ${{ secrets.SLS_CLIENT_ID }}
+          #password: ${{ secrets.SLS_CLIENT_SECRET }}
 
       #- run: docker pull tauruseer.azurecr.io/tsscanner:latest
       - name: Run the build process with Docker
-            uses: addnab/docker-run-action@v3
-            with:
-                image: aschmelyun/cleaver:latest
-                options: -v ${{ github.workspace }}:/repo
+        uses: addnab/docker-run-action@v3
+        with:
+          image: tauruseer.azurecr.io/tsscanner:latest
+          username: ${{ secrets.SLS_CLIENT_ID }}
+          password: ${{ secrets.SLS_CLIENT_SECRET }}
+          options: -v ${{ github.workspace }}:/repo
       
       # Run the "sls scan" command on the command line of the docker image.
       - run: -p /repo --component-path /repo --build-path /repo --account-key ${SLS_ACCOUNT_KEY} --scan-key ${SLS_SCAN_KEY} --package-name \"WebGoat\" --package-version \"1.0\""
