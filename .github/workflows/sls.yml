@@ -48,7 +48,8 @@ jobs:
       - name: Run the build process with Docker
         uses: addnab/docker-run-action@v3
         with:
-          image: tauruseer.azurecr.io/tsscanner:latest
+          registry: tauruseer.azurecr.io
+          image: tsscanner:latest
           username: ${{ secrets.SLS_CLIENT_ID }}
           password: ${{ secrets.SLS_CLIENT_SECRET }}
           options: -v ${{ github.workspace }}:/repo
