@@ -21,14 +21,14 @@ jobs:
     # If you are self-hosting, change the following `runs-on` value: 
     runs-on: ubuntu-latest
 
-    container:
+    #container:
       # SLS container image. Do not change this.
-      image: tauruseer.azurecr.io/tsscanner:latest
-      credentials:
-        username: ${{ secrets.SLS_CLIENT_ID }}
-        password: ${{ secrets.SLS_CLIENT_SECRET }}
-      volumes:
-        - ${GITHUB_WORKSPACE}:/repo
+      #image: tauruseer.azurecr.io/tsscanner:latest
+    #credentials:
+        #username: ${{ secrets.SLS_CLIENT_ID }}
+        #password: ${{ secrets.SLS_CLIENT_SECRET }}
+      #volumes:
+        #- ${GITHUB_WORKSPACE}:/repo
 
     # Skip any PR created by dependabot to avoid permission issues:
     if: (github.actor != 'dependabot[bot]')
@@ -36,8 +36,23 @@ jobs:
     steps:
       # Fetch project source with GitHub Actions Checkout.
       - uses: actions/checkout@v4
+
+      - name: Login to ACR
+        uses: docker/login-action@v3
+        with:
+          registry: tauruseer.azurecr.io
+          username: ${{ secrets.SLS_CLIENT_ID }}
+          password: ${{ secrets.SLS_CLIENT_SECRET }}
+
+      #- run: docker pull tauruseer.azurecr.io/tsscanner:latest
+      - name: Run the build process with Docker
+            uses: addnab/docker-run-action@v3
+            with:
+                image: aschmelyun/cleaver:latest
+                options: -v ${{ github.workspace }}:/repo
+      
       # Run the "sls scan" command on the command line of the docker image.
-      - run: tauruseer.azurecr.io/tsscanner:latest -p /repo --component-path /repo --build-path /repo --account-key ${SLS_ACCOUNT_KEY} --scan-key ${SLS_SCAN_KEY} --package-name \"WebGoat\" --package-version \"1.0\""
+      - run: -p /repo --component-path /repo --build-path /repo --account-key ${SLS_ACCOUNT_KEY} --scan-key ${SLS_SCAN_KEY} --package-name \"WebGoat\" --package-version \"1.0\""
         env:
           # and add it to your GitHub secrets.
           SLS_ACCOUNT_KEY: ${{ secrets.SLS_ACCOUNT_KEY }}
